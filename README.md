@@ -200,10 +200,7 @@ Each completed loan generates a **Credit History NFT** that:
 ### 1. Smart Contract System
 - **Solidity-based** on Ethereum/EVM chains
 - Core contracts:
-  - `CollateralManager.sol`: Manages deposits
-  - `LoanProcessor.sol`: Manages loans
-  - `PaymentHandler.sol`: Handles payments
-  - `CreditScorer.sol`: Calculates scores
+  - `CredVerify.sol`: Manage all processes
   - `ReputationNFT.sol`: Issues NFTs
 
 ### 2. Data Layer
@@ -227,4 +224,23 @@ Each completed loan generates a **Credit History NFT** that:
 - DAO governance for community parameters
 - Expanded financial education ecosystem
 
-<img src="https://i.imgur.com/v03TqXJ.jpeg" alt="Image">
+## User Journey Flow
+
+```mermaid
+flowchart TD
+    A[User Registration] -->|Connect Wallet & KYC| B[Deposit Collateral]
+    B -->|Deposit Stablecoins| C[Smart Contract Lock]
+    C -->|Automatic Creation| D[Credit Builder Loan]
+    D -->|Generate| E[Payment Schedule]
+    E -->|Monthly Payments| F{Payment Status}
+    F -->|On Time| G[Positive Score Impact]
+    F -->|Late/Missed| H[Negative Score Impact]
+    G -->|Continue Payments| I[Score Improvement]
+    H -->|Continue Payments| I
+    I -->|All Payments Complete| J[Loan Completion]
+    J -->|Return| K[Original Collateral]
+    J -->|Generate| L[Credit History NFT]
+    J -->|Calculate| M[Final Credit Score]
+    L -->|Can Be Used For| N[DeFi Opportunities]
+    M -->|Determines| O[Financial Access]
+```

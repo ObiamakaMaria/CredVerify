@@ -1,0 +1,23 @@
+{
+  "name": "credverify",
+  "version": "1.0.0",
+  "description": "Of course! Here's your document, **properly formatted for a `README.md`** using clean and organized Markdown:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ObiamakaMaria/credVerify/issues"
+  },
+  "homepage": "https://github.com/ObiamakaMaria/credVerify#readme",
+  "devDependencies": {
+    "hardhat": "^2.23.0"
+  }
+}

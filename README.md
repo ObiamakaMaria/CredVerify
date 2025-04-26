@@ -226,3 +226,5 @@ Each completed loan generates a **Credit History NFT** that:
 - Insurance products for loan protection
 - DAO governance for community parameters
 - Expanded financial education ecosystem
+
+<img src="https://i.imgur.com/v03TqXJ.jpeg" alt="Image">

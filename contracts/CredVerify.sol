@@ -10,7 +10,6 @@ contract CredVerify is Ownable {
     uint256 public constant LOAN_DURATION = 12; // 12 months
     uint256 public constant APR = 8; // 8% annual interest rate
    
-
-
+    constructor(address initialOwner) Ownable(initialOwner) {}
    
 }

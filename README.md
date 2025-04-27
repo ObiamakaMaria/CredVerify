@@ -1,246 +1,64 @@
-Of course! Here's your document, **properly formatted for a `README.md`** using clean and organized Markdown:
+# Onchain Credit Score Builder
 
----
+## Project Vision
 
-# Product Requirements Document: Onchain Credit Score Builder Loans
+An innovative decentralized platform designed to help individuals build verifiable credit histories on the blockchain through structured credit builder loans. This aims to foster financial inclusion for the underbanked while creating sustainable revenue streams.
 
-## Executive Summary
+## Problem Statement
 
-### Product Vision
-An innovative decentralized platform that helps individuals build verifiable credit histories on the blockchain through structured credit builder loans, creating financial inclusion for the underbanked while generating sustainable revenue through various service fees and marketplace opportunities.
+Globally, many adults lack access to traditional financial services due to insufficient or non-existent credit histories. Centralized credit systems often lack transparency and accessibility, creating barriers for individuals seeking to build financial standing.
 
-### Problem Statement
-Over 1.7 billion adults worldwide lack access to financial services due to missing credit histories. Traditional credit scoring systems are opaque, centralized, and inaccessible to many.  
-This creates a paradoxical barrier: without credit history, individuals cannot access loans; without loans, they cannot build credit history.
+## Solution Overview
 
-### Solution Overview
-Our platform solves this problem by creating a transparent, blockchain-based credit building system where users can establish verifiable financial reputations through a structured process:
+This platform provides a transparent, blockchain-based system enabling users to establish a verifiable financial reputation. The core process involves:
 
-- Deposit collateral into a smart contract
-- Make regular payments over time
-- Build a transparent credit history
-- Access progressively better financial opportunities
+1.  **Collateral Deposit:** Users deposit stablecoins into a smart contract.
+2.  **Loan Creation:** A credit builder loan, typically matching the collateral amount, is automatically created.
+3.  **Structured Payments:** Users make regular payments (principal + interest) over a defined period.
+4.  **Credit Building:** On-time payments are recorded on-chain, contributing positively to a blockchain-based credit score.
+5.  **Completion:** Upon loan completion, the user's collateral is returned, and they receive a Credit History NFT representing their repayment record.
 
----
+## Target Platform
 
-## User Journey & Core Process
+This project will be deployed on **Lisk**, a Layer 2 scaling solution built on the Optimism (OP) Stack and secured by Ethereum. This choice ensures:
 
-### 1. User Registration
-- Connect blockchain wallet
-- Complete basic KYC verification (adjustable based on regulatory requirements)
-- Review and accept platform terms
+*   **Low Transaction Costs:** Making the credit-building process affordable for the target user base.
+*   **High Scalability:** Supporting a large number of users and transactions efficiently.
+*   **Ethereum Security:** Leveraging the security guarantees of the underlying Ethereum mainnet.
 
-### 2. Credit Builder Loan Process
+## Core Features
 
-#### Step 1: Collateral Deposit
-- User deposits a specific amount (e.g., $100 in stablecoins) into a smart contract.
-- Collateral is locked for the duration of the credit building period.
-- Deposit amount determines the loan amount (typically 1:1 ratio).
+*   Smart contract-managed collateral deposits and returns.
+*   Automated credit builder loan creation and management.
+*   On-chain tracking of payment history.
+*   Transparent credit score calculation based on repayment behavior.
+*   Issuance of non-transferable Credit History NFTs upon loan completion.
+*   User dashboard for tracking progress and score.
+*   Marketplace for connecting users with further financial opportunities (future).
 
-#### Step 2: Loan Creation
-- Smart contract automatically creates a "credit builder loan" equal to the collateral amount.
-- Example: $100 loan at 8% APR over 12 months.
-- Monthly payment: approximately **$8.67**.
-- Payment schedule is established and visible to the user.
+## Technology Stack (Planned)
 
-#### Step 3: Payment Process
-- User makes monthly payments of $8.67 for 12 months (total: ~$104).
-- Each payment includes principal repayment plus interest.
-- Payments are made directly from the user's wallet to the smart contract.
-- Payments recorded on-chain as verifiable transactions.
-- On-time payments positively impact the user's credit score.
-- Late/missed payments negatively impact the credit score and may incur penalties.
+*   **Smart Contracts:** Solidity
+*   **Blockchain Network:** Lisk (OP Stack / Layer 2)
+*   **Potential Off-chain Storage:** IPFS/Arweave (for non-critical data)
+*   **(Frontend/Backend TBD)**
 
-#### Step 4: Loan Completion
-- After all payments, the smart contract returns the original $100 collateral.
-- Platform retains the interest (~$4) as revenue.
-- User receives:
-  - Final credit score
-  - Completed loan certificate (NFT)
+*(More details on setup, deployment, and contribution will be added as the project progresses.)*
 
----
+Here's a summary of the steps we've taken to build the Onchain Credit Score Builder smart contract system:Understanding Requirements: We started with the detailed Product Requirements Document (PRD) outlining the vision, user flow, credit scoring mechanism, revenue model, and technical architecture for the platform.Architecture Design: Based on the PRD, we adopted a modular smart contract architecture to separate concerns. This resulted in five core contracts:CollateralManager: Handles deposit, locking, and withdrawal of user collateral.LoanProcessor: Creates and manages the state of the credit builder loans, orchestrating interactions between other contracts.PaymentHandler: Processes incoming user payments, splitting principal and interest (simplified), and interacting with the LoanProcessor and CreditScorer.CreditScorer: Calculates and updates the user's on-chain credit score based on payment history, loan completion/default status (using a simplified model derived from PRD weights).ReputationNFT: Mints a soulbound (non-transferable) ERC721 token upon successful loan completion, representing the user's verified credit history.Interface Definitions: We defined Solidity interfaces (ICollateralManager.sol, ILoanProcessor.sol, etc.) for each contract. This established clear boundaries and function signatures for how the contracts would interact with each other.Smart Contract Implementation: We wrote the Solidity code for each of the five core contracts and their interfaces. Key implementation details include:Using OpenZeppelin libraries for standard implementations (ERC20, ERC721, Ownable, SafeERC20).Implementing the core logic specified in the PRD: 1:1 collateral-to-loan ratio, tracking loan status, basic payment processing, simplified score updates, and NFT minting linked to loan completion.Implementing access control (Ownable for admin functions, specific checks for inter-contract calls like onlyLoanProcessor).Adding events for significant actions (e.g., LoanCreated, CollateralDeposited, ScoreUpdated, NFTMinted).Implementing basic view functions to retrieve state information.Making the ReputationNFT soulbound by overriding transfer functions.Initial Testing: We developed initial unit tests using the Hardhat framework (TypeScript, ethers.js, Chai).Created a MockERC20 contract for testing token interactions.Wrote test suites for CollateralManager and LoanProcessor, focusing on:Deployment validation.Admin function access control and correctness.Core functionality reverts (e.g., invalid inputs, permissions).Successful execution paths (deposit collateral, loan creation).Testing events emission.Verifying state changes.Testing the crucial interaction where CollateralManager successfully triggers loan creation in LoanProcessor.Acknowledged that comprehensive testing across all contracts and integration scenarios is still required.Deployment Script: Finally, we created a Hardhat deployment script (deploy.ts) to automate the process of:Deploying all five core contracts to a network.Logging their addresses.Calling the necessary admin functions (setAddresses, setLoanProcessor, etc.) to link the deployed contracts together correctly.Performing initial configuration, such as setting the supported payment/collateral token address in CollateralManager.Essentially, we've translated the PRD into a functional, albeit initial, set of interconnected smart contracts, verified the core mechanics with tests, and prepared the scripts needed to deploy this system onto a blockchain network. The next phases would involve more rigorous testing, security audits, frontend development, and potential refinement of the on-chain logic (like scoring and payment calculations).
 
-## Financial Flow Example
-
-| Month | Payment Amount | Principal | Interest | Remaining Balance |
-|:-----:|:--------------:|:---------:|:--------:|:-----------------:|
-| Start | - | - | - | $100.00 |
-| 1 | $8.67 | $7.67 | $1.00 | $92.33 |
-| 2 | $8.67 | $7.75 | $0.92 | $84.58 |
-| 3 | $8.67 | $7.82 | $0.85 | $76.76 |
-| 4 | $8.67 | $7.90 | $0.77 | $68.86 |
-| 5 | $8.67 | $7.98 | $0.69 | $60.88 |
-| 6 | $8.67 | $8.06 | $0.61 | $52.82 |
-| 7 | $8.67 | $8.14 | $0.53 | $44.68 |
-| 8 | $8.67 | $8.22 | $0.45 | $36.46 |
-| 9 | $8.67 | $8.30 | $0.37 | $28.16 |
-| 10 | $8.67 | $8.38 | $0.28 | $19.78 |
-| 11 | $8.67 | $8.47 | $0.20 | $11.31 |
-| 12 | $8.67 | $11.31 | $0.11 | $0.00 |
-
-- **Total**: 
-  - Payments: **$104.04**
-  - Principal: **$100.00**
-  - Interest: **$4.04**
-
-> Note: At the end, the user receives their $100 deposit back. The platform keeps $4.04 as revenue.
-
----
-
-## Credit Score System
-
-### 1. Credit Score Calculation
-
-| Factor | Weight | Description |
-|:------:|:------:|:-----------:|
-| Payment History | 60% | On-time vs. late/missed payments |
-| Loan Duration | 15% | Length of credit history |
-| Payment Consistency | 15% | Pattern of regular payments |
-| Loan Amount | 10% | Size of loans managed successfully |
-
-### 2. Credit Score Scale
-- **300-549**: High Risk
-- **550-649**: Medium Risk
-- **650-749**: Low Risk
-- **750-850**: Minimal Risk
-
-### 3. Score Updates
-- Real-time updates after each payment
-- Current score and payment history displayed on dashboard
-- Explanations for score changes
-- Visual trends over time
-
-### 4. Credit History NFT
-Each completed loan generates a **Credit History NFT** that:
-- Contains verifiable payment history
-- Displays final credit score
-- Is portable across DeFi platforms
-- Can be selectively shared
-- Is non-transferable (soulbound token)
-
----
-
-## User Interface Requirements
-
-### 1. Dashboard
-- Current credit score with historical trend
-- Active loan details:
-  - Original deposit
-  - Monthly payment
-  - Next payment due date
-  - Remaining payments
-  - Projected completion date
-- Payment history visualization
-- Financial opportunities based on credit score
-
-### 2. Payment Interface
-- Manual one-time payment
-- Scheduled automatic payments
-- Partial payment handling
-- Payment receipts
-- Upcoming payment reminders
-- Late payment alerts
-
-### 3. Credit Profile
-- Detailed credit score breakdown
-- Explanations by factor
-- Recommendations for improvement
-- Credit History NFT gallery
-- Selective sharing controls
-
-### 4. Marketplace
-- Loan offerings based on credit score
-- Financial service provider listings
-- Loan comparison tools
-- New service application interface
-- Success rates
-
----
-
-## Revenue Model
-
-### 1. Interest Revenue
-- **Description**: Interest charged on loans
-- **Example**: $100 loan at 8% APR → ~$4 interest
-- **Collection Method**: Automatically deducted
-- **Scaling**: Directly with volume and loan size
-
-### 2. Service Fees
-- **Origination Fee**: 1-2% of loan
-- **Monthly Service Fee**: $1 per active loan
-- **Early Withdrawal Fee**: 5% of collateral
-
-### 3. Premium Features
-- Advanced Analytics: **$5/month**
-- Expedited Credit Building: **$10/month**
-- Credit Score Certification: **$15 per certificate**
-- Custom Loan Terms: **$5 setup fee**
-
-### 4. Marketplace Revenue
-- **Referral Fees**: 1-3% commission
-- **Listing Fees**: 
-  - Basic listing: **$500/month**
-  - Featured placement: **$2,000/month**
-- **Matching Fees**: 0.5-1% per matched loan
-
-### 5. Revenue Example Scenarios
-
-**Small Scale Example:**
-- 1,000 users with $100 loans
-- Total Annual Revenue: **$22,500**
-
-**Medium Scale Example:**
-- 100,000 users with $250 loans
-- Total Annual Revenue: **$7,000,000**
-
----
-
-## Technical Architecture
-
-### 1. Smart Contract System
-- **Solidity-based** on Ethereum/EVM chains
-- Core contracts:
-  - `CredVerify.sol`: Manage all processes
-  - `ReputationNFT.sol`: Issues NFTs
-
-### 2. Data Layer
-- **On-chain**:
-  - Loan terms
-  - Payment history
-  - Credit scores
-  - NFT metadata
-- **Off-chain**:
-  - User profiles
-  - UI preferences
-  - Analytics data
-  - Growth rate metrics
-
----
-
-## Future Features
-- Real-world credit utilization bridges
-- Multi-collateral options (including yield-bearing assets)
-- Insurance products for loan protection
-- DAO governance for community parameters
-- Expanded financial education ecosystem
-
-## User Journey Flow
-
-```mermaid
-flowchart TD
-    A[User Registration] -->|Connect Wallet & KYC| B[Deposit Collateral]
-    B -->|Deposit Stablecoins| C[Smart Contract Lock]
-    C -->|Automatic Creation| D[Credit Builder Loan]
-    D -->|Generate| E[Payment Schedule]
-    E -->|Monthly Payments| F{Payment Status}
-    F -->|On Time| G[Positive Score Impact]
-    F -->|Late/Missed| H[Negative Score Impact]
-    G -->|Continue Payments| I[Score Improvement]
-    H -->|Continue Payments| I
-    I -->|All Payments Complete| J[Loan Completion]
-    J -->|Return| K[Original Collateral]
-    J -->|Generate| L[Credit History NFT]
-    J -->|Calculate| M[Final Credit Score]
-    L -->|Can Be Used For| N[DeFi Opportunities]
-    M -->|Determines| O[Financial Access]
-```
+# Why Lisk?
+Lisk as the target platform is an excellent decision. Here's why it's a strong fit based on your PRD and the previous analysis:
+Addresses Core Scalability Issues: As a Layer 2 solution built on the Optimism (OP) Stack, Lisk directly tackles the primary concerns identified with deploying on Ethereum L1:
+Lower Gas Fees: L2s significantly reduce transaction costs compared to Ethereum mainnet. This makes the frequent, small-value transactions (monthly payments, service fees, score updates) described in your PRD economically viable, even for the target user base with small loan amounts. The ~$4 interest on a $100 loan is no longer overshadowed by potentially high gas costs.
+Higher Throughput & Faster Transactions: Lisk will offer much faster confirmation times and handle a greater volume of transactions than Ethereum L1, supporting a potentially large user base making regular payments and interacting with the platform without significant delays.
+Leverages Ethereum Security: By being secured by Ethereum, Lisk inherits the robust security guarantees of the mainnet, which is crucial for a financial application handling user collateral and sensitive credit data.
+OP Stack Foundation: Building on the Optimism Stack provides several advantages:
+EVM Equivalence: Smart contracts written in Solidity can be deployed with minimal changes.
+Mature Tooling: Access to established developer tools, infrastructure (like block explorers, wallets), and best practices from the Optimism ecosystem.
+Interoperability: Potential for future integration within the broader Optimism "Superchain" ecosystem, enhancing the reach and utility of your Credit History NFTs.
+Considerations Moving Forward with Lisk:
+Data Storage Strategy: While L2 storage is cheaper than L1, the recommendation to minimize on-chain storage for non-essential data (like granular historical details) still holds for optimal efficiency and cost. Use on-chain storage for critical state and proofs, linking to off-chain data where appropriate.
+Upgradability: Implement standard smart contract upgrade patterns (e.g., Proxies) from the start.
+KYC Integration: The technical approach for KYC still needs to be defined.
+Lisk Specifics: Familiarize your development team with any specific nuances, tools, or best practices recommended for deploying on Lisk within the OP Stack framework.

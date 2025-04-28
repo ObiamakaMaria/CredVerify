@@ -34,9 +34,6 @@ contract CredVerify is Ownable, ReentrancyGuard {
         uint256 remainingPayments;
         bool active;
         bool completed;
-        mapping(uint256 => uint256) paymentDates; // payment index => timestamp // Track when payments were made
-        mapping(uint256 => uint256) paymentAmounts; // payment index => amount // Track payment amounts
-        mapping(uint256 => uint256) daysLate; // payment index => days late // Track days late for each payment
         uint256 paymentCount; // Track total number of times payments were made 
     }
 
@@ -45,6 +42,12 @@ contract CredVerify is Ownable, ReentrancyGuard {
     
     // Track users with active loans
     address[] public activeBorrowers;
+
+    // Track payment history using mappings
+    mapping(address => mapping(uint256 => uint256)) public paymentDates; // borrower => payment index => timestamp
+    mapping(address => mapping(uint256 => uint256)) public paymentAmounts; // borrower => payment index => amount
+    mapping(address => mapping(uint256 => uint256)) public daysLate; // borrower => payment index => days late
+    
 
     // track approved stablecoins
     mapping(address => bool) public approvedStablecoins;

@@ -1,0 +1,172 @@
+
+# CredVerify Smart Contract System: Flow and Interactions
+
+## System Overview
+
+CredVerify is a decentralized lending protocol that enables collateralized loans with on-chain credit scoring. The system tracks repayment behavior to build borrowers' credit histories, potentially allowing for better loan terms over time.
+
+## Contract Architecture
+
+The system consists of five main smart contracts that work together:
+
+1. **CollateralManager**: Handles collateral deposits, withdrawals, and lockups
+2. **LoanProcessor**: Core contract that manages loan creation, monitoring, and lifecycle
+3. **PaymentHandler**: Processes payments, calculates interest, and splits payments between principal and interest
+4. **CreditScorer**: Evaluates and updates borrowers' credit scores based on loan activity
+5. **ReputationNFT**: Represents credit reputation as an NFT that could be used in external protocols
+
+## Typical Interaction Flow
+
+### 1. Collateral Deposit and Loan Creation
+
+```mermaid
+sequenceDiagram
+    User->>CollateralManager: depositCollateral(token, amount)
+    CollateralManager->>LoanProcessor: notifyCollateralLockedAndCreateLoan()
+    LoanProcessor->>CollateralManager: storeCollateralInfo()
+    LoanProcessor->>CreditScorer: checkInitialScore()
+    LoanProcessor-->>User: Loan Created (ID: 1)
+```
+
+Example:
+```javascript
+// User deposits 1000 USDC as collateral
+await collateralManager.depositCollateral(
+  "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", // USDC address
+  ethers.parseUnits("1000", 6)                  // 1000 USDC with 6 decimals
+);
+// System creates a loan with 1000 USDC principal
+```
+
+### 2. Loan Terms and Initial State
+
+After creation, the loan has the following properties:
+- **Loan ID**: 1
+- **Borrower**: User's address
+- **Principal Amount**: 1000 USDC
+- **Collateral Amount**: 1000 USDC (1:1 ratio)
+- **Interest Rate**: 10% APR (1000 basis points)
+- **Duration**: 12 months
+- **Status**: Active
+- **Next Payment Due**: 30 days from loan creation
+
+### 3. Making Payments
+
+```mermaid
+sequenceDiagram
+    User->>PaymentHandler: makePayment(loanId, amount)
+    PaymentHandler->>Token: transferFrom(user, paymentHandler, amount)
+    PaymentHandler->>Token: transfer(treasury, interestComponent)
+    PaymentHandler->>Token: transfer(treasury, principalComponent)
+    PaymentHandler->>LoanProcessor: processPayment(loanId, principal, interest)
+    PaymentHandler->>CreditScorer: recordPayment(loanId, borrower, timestamp, amount, isOnTime)
+    LoanProcessor-->>User: Payment Processed
+```
+
+Example:
+```javascript
+// User makes payment of 100 USDC
+await paymentHandler.makePayment(
+  1,                              // Loan ID
+  ethers.parseUnits("100", 6)     // 100 USDC
+);
+```
+
+Payment breakdown:
+- Monthly interest (at 10% APR): ~8.33 USDC
+- Principal portion: 91.67 USDC
+- New outstanding principal: 908.33 USDC
+
+### 4. Credit Score Impact
+
+- **On-time payment**: Score increases (typically +2 to +5 points)
+- **Late payment**: Score decreases (typically -10 to -20 points)
+- **Loan completion**: Significant score boost (typically +20 to +50 points)
+- **Default**: Severe score penalty (typically -50 to -100 points)
+
+The base credit score starts at 350 and can range from 300 to 850.
+
+### 5. Loan Completion or Default Scenarios
+
+#### Successful Completion:
+
+```mermaid
+sequenceDiagram
+    LoanProcessor->>CollateralManager: authorizeWithdrawal(loanId, user, token)
+    User->>CollateralManager: withdrawCollateral(loanId)
+    CollateralManager->>User: transfer(collateralToken, fullAmount)
+    LoanProcessor->>CreditScorer: recordLoanCompletion(loanId, user, loanDuration, principalAmount)
+    CreditScorer->>ReputationNFT: mintOrUpdateNFT(user, newScore)
+```
+
+#### Default Scenario:
+
+```mermaid
+sequenceDiagram
+    LoanProcessor->>CollateralManager: claimDefaultedCollateral(loanId, treasury)
+    CollateralManager->>Treasury: transfer(collateralToken, collateralAmount)
+    LoanProcessor->>CreditScorer: recordDefault(loanId, user)
+```
+
+## Full Interaction Example
+
+Let's walk through a complete example:
+
+1. **Initial Setup**:
+   - User has 2000 USDC and no credit history
+   - Base credit score: 350
+
+2. **Loan Creation**:
+   - User deposits 1000 USDC collateral
+   - System creates Loan #1 with 1000 USDC principal
+   - 12-month term, 10% APR, monthly payments
+
+3. **Payment History**:
+   - Month 1: User pays 100 USDC on time
+     - Interest: 8.33 USDC, Principal: 91.67 USDC
+     - New principal balance: 908.33 USDC
+     - Credit score increases to 352
+   
+   - Month 2: User pays 100 USDC on time
+     - Interest: 7.57 USDC, Principal: 92.43 USDC
+     - New principal balance: 815.90 USDC
+     - Credit score increases to 354
+   
+   - Month 3: User misses payment deadline by 5 days
+     - Interest: 6.80 USDC (plus 0.68 USDC late fee)
+     - Principal: 92.52 USDC
+     - New principal balance: 723.38 USDC
+     - Credit score decreases to 344
+   
+   - Months 4-12: User pays remaining balance on time
+     - Final payment clears remaining principal
+     - Loan status changes to Completed
+     - Credit score increases to 380
+
+4. **Loan Completion**:
+   - System authorizes full collateral withdrawal
+   - User withdraws full 1000 USDC collateral
+   - CreditScorer records loan completion
+   - User's final credit score: 400
+
+## Contract Functions for Common Interactions
+
+```javascript
+// 1. Deposit collateral and create loan
+await collateralManager.depositCollateral(tokenAddress, amount);
+
+// 2. Check loan details
+const loanDetails = await loanProcessor.getLoanDetails(loanId);
+
+// 3. Make a payment
+await paymentHandler.makePayment(loanId, amount);
+
+// 4. Check payment information
+const [interestDue, nextDueDate] = await paymentHandler.getExpectedPaymentInfo(loanId);
+
+// 5. Check credit score
+const scoreData = await creditScorer.getScoreData(userAddress);
+
+// 6. Withdraw collateral (after loan completion)
+await collateralManager.withdrawCollateral(loanId);
+```

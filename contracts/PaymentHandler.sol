@@ -83,7 +83,7 @@ contract PaymentHandler is IPaymentHandler, Ownable {
         // --- Checks ---
         require(loan.borrower != address(0), "PH: Loan does not exist");
         require(loan.status == ILoanProcessor.LoanStatus.Active, "PH: Loan not active");
-        // require(msg.sender == loan.borrower, "PH: Only borrower can pay"); // Allowing anyone to pay for now
+        require(msg.sender == loan.borrower, "PH: Only borrower can pay");
         require(amount > 0, "PH: Amount must be positive");
         require(treasuryAddress != address(0), "PH: Treasury address not set"); // Ensure treasury is set
 
@@ -159,6 +159,7 @@ contract PaymentHandler is IPaymentHandler, Ownable {
     /// @return interestDue The interest portion of the payment due.
     function getExpectedPayment(uint256 loanId) external view returns (uint256 totalDue, uint256 principalDue, uint256 interestDue) {
         ILoanProcessor.Loan memory loan = loanProcessor.getLoanDetails(loanId);
+        uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
         
         if (loan.status != ILoanProcessor.LoanStatus.Active) {
             return (0, 0, 0); // No payment due if loan not active
@@ -166,7 +167,6 @@ contract PaymentHandler is IPaymentHandler, Ownable {
 
         if (loan.annualInterestRateBps == 0) {
             // For zero interest loans, just divide remaining principal by remaining periods
-            uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
             uint256 remainingPayments = (loan.duration - (block.timestamp - loan.startTime)) / PAYMENT_PERIOD_SECONDS;
             if (remainingPayments == 0) remainingPayments = 1;
             
@@ -178,7 +178,6 @@ contract PaymentHandler is IPaymentHandler, Ownable {
         interestDue = (loan.principalAmount * loan.annualInterestRateBps) / (12 * BPS_DENOMINATOR);
         
         // For principal, use equal installments based on total loan duration
-        uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
         uint256 totalPayments = loan.duration / PAYMENT_PERIOD_SECONDS;
         principalDue = remainingPrincipalAmount / totalPayments;
         
@@ -221,10 +220,4 @@ contract PaymentHandler is IPaymentHandler, Ownable {
 
         return interestForPeriod;
     }
-
-    // --- Fallback Functions ---
-    /// @dev Optional: Allow receiving ETH if needed for gas or other purposes.
-    // receive() external payable {}
-    /// @dev Optional: Fallback function.
-    // fallback() external payable {}
 }

@@ -1,0 +1,260 @@
+Product Requirements Document: Onchain Credit Score Builder Loans
+Executive Summary
+Product Vision
+An innovative decentralized platform that helps individuals build verifiable credit histories on the blockchain through structured credit builder loans, creating financial inclusion for the underbanked while generating sustainable revenue through various service fees and marketplace opportunities.
+Problem Statement
+Over 1.7 billion adults worldwide lack access to financial services due to missing credit histories. Traditional credit scoring systems are opaque, centralized, and inaccessible to many. This creates a paradoxical barrier: without credit history, individuals cannot access loans; without loans, they cannot build credit history.
+Solution Overview
+Our platform solves this problem by creating a transparent, blockchain-based credit building system where users can establish verifiable financial reputations through a structured process:
+Deposit collateral into a smart contract
+Make regular payments over time
+Build a transparent credit history
+Access progressively better financial opportunities
+User Journey & Core Process
+1 User Registration
+Users connect their blockchain wallet
+Complete basic KYC verification (adjustable based on regulatory requirements)
+Review and accept platform terms
+2 Credit Builder Loan Process
+The credit building process follows these exact steps:
+Step 1: Collateral Deposit
+User deposits a specific amount (e.g., $100 in stablecoins) into a smart contract
+This collateral is locked for the duration of the credit building period
+The deposit amount determines the loan amount (typically 1:1 ratio)
+Step 2: Loan Creation
+A smart contract automatically creates a "credit builder loan" equal to the collateral amount
+Example: $100 loan with 8% APR over 12 months
+Monthly payment calculated: approximately $8.67 per month
+Payment schedule is established and visible to the user
+Step 3: Payment Process
+User makes monthly payments of $8.67 for 12 months (total: ~$104)
+Each payment consists of principal repayment plus interest
+Payments are made directly from the user's wallet to the smart contract
+Each payment is recorded on the blockchain as a verifiable transaction
+On-time payments positively impact the user's credit score
+Late/missed payments negatively impact the credit score and may incur penalties
+Step 4: Loan Completion
+After all payments are made (12 monthly payments totaling ~$104)
+The smart contract returns the original $100 collateral to the user's wallet
+The platform retains the interest portion (~$4) as revenue
+User receives final credit score and completed loan certificate (NFT)
+Financial Flow Example (Detailed)
+Month
+Payment Amount
+Principal
+Interest
+Remaining Balance
+Start
+-
+-
+-
+$100.00
+1
+$8.67
+$7.67
+$1.00
+$92.33
+2
+$8.67
+$7.75
+$0.92
+$84.58
+3
+$8.67
+$7.82
+$0.85
+$76.76
+4
+$8.67
+$7.90
+$0.77
+$68.86
+5
+$8.67
+$7.98
+$0.69
+$60.88
+6
+$8.67
+$8.06
+$0.61
+$52.82
+7
+$8.67
+$8.14
+$0.53
+$44.68
+8
+$8.67
+$8.22
+$0.45
+$36.46
+9
+$8.67
+$8.30
+$0.37
+$28.16
+10
+$8.67
+$8.38
+$0.28
+$19.78
+11
+$8.67
+$8.47
+$0.20
+$11.31
+12
+$8.67
+$11.31
+$0.11
+$0.00
+Total
+$104.04
+$100.00
+$4.04
+-
+
+Note: At the end, the user receives their $100 deposit back. The platform keeps the $4.04 interest as revenue.
+ Credit Score System
+1 Credit Score Calculation
+The blockchain-based credit score is calculated using these factors:
+Factor
+Weight
+Description
+Payment History
+60%
+On-time vs. late/missed payments
+Loan Duration
+15%
+Length of credit history
+Payment Consistency
+15%
+Pattern of regular payments
+Loan Amount
+10%
+Size of loans managed successfully
+
+2 Credit Score Scale
+300-549: High Risk
+550-649: Medium Risk
+650-749: Low Risk
+750-850: Minimal Risk
+3 Score Updates
+Score is updated in real-time with each payment
+Users can view their current score and history in the dashboard
+Score changes are accompanied by explanations
+Historical trends are displayed visually
+4 Credit History NFT
+Each completed loan generates a Credit History NFT that:
+Contains verifiable payment history
+Shows final credit score
+Is portable across DeFi platforms
+Can be selectively shared with potential lenders
+Accumulates reputation across multiple loans
+Cannot be transferred to other users (soulbound token)
+User Interface Requirements
+1 Dashboard
+The dashboard will clearly display:
+Current credit score with historical trend
+Active loan details:
+Original deposit amount
+Monthly payment amount
+Next payment due date
+Remaining payments
+Projected completion date
+Payment history visualization
+Available financial opportunities based on current score
+2 Payment Interface
+Multiple payment options:
+Manual one-time payment
+Scheduled automatic payments
+Partial payment handling
+Payment confirmation receipts
+Upcoming payment reminders
+Late payment warnings
+3 Credit Profile
+Detailed credit score breakdown
+Factor-by-factor explanation
+Recommendations for improvement
+Credit history NFT gallery
+Selective sharing controls
+4 Marketplace
+Available loan offerings based on credit score
+Financial service provider listings
+Comparison tools for different options
+Application interface for new services
+Historical success rates
+5. Revenue Model
+1 Interest Revenue
+Description: Interest charged on credit builder loans
+Example: On a $100 loan at 8% APR, approximately $4 is collected in interest
+Collection Method: Automatically retained from monthly payments
+Scaling: Direct scaling with loan volume and size
+2 Service Fees
+Origination Fee: 1-2% of loan amount charged at initiation
+Example: $1-2 on a $100 loan
+Monthly Service Fee: $1 per active loan
+Example: $12 total over 12-month loan
+Early Withdrawal Fee: 5% of collateral for early termination
+Example: $5 on a $100 deposit
+3 Premium Features
+Advanced Analytics: $5/month for detailed credit insights
+Expedited Credit Building: $10/month for accelerated scoring
+Credit Score Certification: $15 per official certificate for external use
+Custom Loan Terms: $5 fee for personalized loan structures
+4 Marketplace Revenue
+Referral Fees:
+1-3% commission on loans originated through platform referrals
+Example: $50 commission on a $5,000 loan (1%)
+Collected directly from lending partners upon loan funding
+Listing Fees:
+Financial service providers pay to be listed in the marketplace
+Basic listing: $500/month
+Featured placement: $2,000/month
+Collected monthly from service providers
+Matching Fees:
+0.5-1% fee for matching qualified borrowers with specific lenders
+Example: $25 on a $5,000 matched loan (0.5%)
+Charged upon successful loan completion
+5 Revenue Example Scenarios
+Small Scale Example:
+1,000 users with $100 loans
+Interest revenue: $4,000 (1,000 × $4)
+Origination fees: $1,500 (1,000 × $1.50 avg)
+Monthly service fees: $12,000 (1,000 × $12 total)
+Marketplace revenue: $5,000 (estimated from referrals)
+Total Annual Revenue: $22,500
+Medium Scale Example:
+100,000 users with average $250 loans
+Interest revenue: $1,000,000 (100,000 × $10)
+Service fees: $3,500,000 (various fees)
+Premium features: $500,000 (10% adoption)
+Marketplace revenue: $2,000,000 (estimated from referrals)
+Total Annual Revenue: $7,000,000
+Technical Architecture
+1 Smart Contract System
+Solidity-based contracts for Ethereum/EVM chains
+Core components:
+CollateralManager.sol: Handles user deposits
+LoanProcessor.sol: Creates and manages loans
+PaymentHandler.sol: Processes monthly payments
+CreditScorer.sol: Calculates and updates scores
+ReputationNFT.sol: Issues and manages credit NFTs
+2 Data Layer
+On-chain storage for:
+Loan terms and status
+Payment history
+Credit score calculations
+NFT metadata
+Off-chain storage for:
+User profiles
+UI preferences
+Analytics data
+Month-over-month growth rate
+ Future Features
+Real-world credit utilization bridges
+Multi-collateral options (including yield-bearing assets)
+Insurance products for loan protection
+DAO governance for community parameter adjustments
+Expanded financial education ecosystem

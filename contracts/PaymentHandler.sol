@@ -100,9 +100,9 @@ contract PaymentHandler is IPaymentHandler, Ownable {
         uint256 principalComponent = amount - interestComponent;
 
         // Clamp principal if it exceeds the remaining balance
-        uint256 remainingPrincipal = loan.principalAmount - loan.totalPaidPrincipal;
-        if (principalComponent > remainingPrincipal) {
-            principalComponent = remainingPrincipal;
+        uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
+        if (principalComponent > remainingPrincipalAmount) {
+            principalComponent = remainingPrincipalAmount;
             // Adjust total amount transferred if user sent excess
             amount = interestComponent + principalComponent;
         }
@@ -166,11 +166,11 @@ contract PaymentHandler is IPaymentHandler, Ownable {
 
         if (loan.annualInterestRateBps == 0) {
             // For zero interest loans, just divide remaining principal by remaining periods
-            uint256 remainingPrincipal = loan.principalAmount - loan.totalPaidPrincipal;
+            uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
             uint256 remainingPayments = (loan.duration - (block.timestamp - loan.startTime)) / PAYMENT_PERIOD_SECONDS;
             if (remainingPayments == 0) remainingPayments = 1;
             
-            return (remainingPrincipal / remainingPayments, remainingPrincipal / remainingPayments, 0);
+            return (remainingPrincipalAmount / remainingPayments, remainingPrincipalAmount / remainingPayments, 0);
         }
         
         // Calculate monthly interest using more precise formula:
@@ -178,9 +178,9 @@ contract PaymentHandler is IPaymentHandler, Ownable {
         interestDue = (loan.principalAmount * loan.annualInterestRateBps) / (12 * BPS_DENOMINATOR);
         
         // For principal, use equal installments based on total loan duration
-        uint256 remainingPrincipal = loan.principalAmount - loan.totalPaidPrincipal;
+        uint256 remainingPrincipalAmount = loan.principalAmount - loan.totalPaidPrincipal;
         uint256 totalPayments = loan.duration / PAYMENT_PERIOD_SECONDS;
-        principalDue = remainingPrincipal / totalPayments;
+        principalDue = remainingPrincipalAmount / totalPayments;
         
         totalDue = principalDue + interestDue;
         

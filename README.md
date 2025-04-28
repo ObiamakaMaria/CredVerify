@@ -1,7 +1,3 @@
-Of course! Here's your document, **properly formatted for a `README.md`** using clean and organized Markdown:
-
----
-
 # Product Requirements Document: Onchain Credit Score Builder Loans
 
 ## Executive Summary

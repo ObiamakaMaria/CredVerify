@@ -153,7 +153,7 @@ describe("CredVerify", function () {
       
       // Create a loan
       const tokenURI = "ipfs://credit-score-metadata";
-      await expect(credVerify.connect(borrower).createLoan(stablecoin1.target, depositAmount, tokenURI))
+      await expect(credVerify.connect(borrower).createCreditBuilderLoan(stablecoin1.target, depositAmount, tokenURI))
         .to.emit(credVerify, "LoanCreated")
         .withArgs(borrower.address, stablecoin1.target, 0, depositAmount);
       
@@ -184,7 +184,7 @@ describe("CredVerify", function () {
       await stablecoin1.connect(borrower).approve(credVerify.target, depositAmount);
       
       await expect(
-        credVerify.connect(borrower).createLoan(stablecoin1.target, depositAmount, "ipfs://uri")
+        credVerify.connect(borrower).createCreditBuilderLoan(stablecoin1.target, depositAmount, "ipfs://uri")
       ).to.be.revertedWith("Stablecoin not approved");
     });
 
@@ -198,7 +198,7 @@ describe("CredVerify", function () {
       await stablecoin1.connect(borrower).approve(credVerify.target, depositAmount);
       
       await expect(
-        credVerify.connect(borrower).createLoan(stablecoin1.target, depositAmount, "ipfs://uri")
+        credVerify.connect(borrower).createCreditBuilderLoan(stablecoin1.target, depositAmount, "ipfs://uri")
       ).to.be.revertedWith("Amount must be >= $50");
     });
 
@@ -212,12 +212,12 @@ describe("CredVerify", function () {
       // Create first loan
       const depositAmount = hre.ethers.parseEther("100");
       await stablecoin1.connect(borrower).approve(credVerify.target, depositAmount);
-      await credVerify.connect(borrower).createLoan(stablecoin1.target, depositAmount, "ipfs://uri1");
+      await credVerify.connect(borrower).createCreditBuilderLoan(stablecoin1.target, depositAmount, "ipfs://uri1");
       
       // Try to create a second loan
       await stablecoin2.connect(borrower).approve(credVerify.target, depositAmount);
       await expect(
-        credVerify.connect(borrower).createLoan(stablecoin2.target, depositAmount, "ipfs://uri2")
+        credVerify.connect(borrower).createCreditBuilderLoan(stablecoin2.target, depositAmount, "ipfs://uri2")
       ).to.be.revertedWith("Active loan exists");
     });
   });
@@ -231,7 +231,7 @@ describe("CredVerify", function () {
       
       const depositAmount = hre.ethers.parseEther("1000");
       await stablecoin1.connect(borrower).approve(credVerify.target, depositAmount);
-      await credVerify.connect(borrower).createLoan(stablecoin1.target, depositAmount, "ipfs://uri");
+      await credVerify.connect(borrower).createCreditBuilderLoan(stablecoin1.target, depositAmount, "ipfs://uri");
       
       // Get loan details
       const loan = await credVerify.loans(borrower.address);

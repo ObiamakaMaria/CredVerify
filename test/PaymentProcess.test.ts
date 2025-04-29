@@ -2,7 +2,7 @@ import {
     time,
     loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import hre, { ethers } from "hardhat";
 
 describe("PaymentProcess", function () {
@@ -11,6 +11,11 @@ describe("PaymentProcess", function () {
 
         const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
+        const loanAmount = hre.ethers.parseEther("10");
+        const interestRate = 8;
+        const loanDuration = 12;
+        const userAccountCredited = hre.ethers.parseEther("99");
+
         const Token = await hre.ethers.getContractFactory("MockERC20");
         const token = await Token.deploy("CredVerify Token", "CVTKN", 18);
         const tokenAddress = token.target;
@@ -18,7 +23,7 @@ describe("PaymentProcess", function () {
         const PayementProcess = await hre.ethers.getContractFactory("PaymentProcess");
         const payementProcess = await PayementProcess.deploy();
 
-        return { user, token, tokenAddress, payementProcess, ADDRESS_ZERO};
+        return { user, token, tokenAddress, payementProcess, ADDRESS_ZERO, loanAmount, interestRate, loanDuration, userAccountCredited };
     }
 
     describe("Deployement", function() {
@@ -31,13 +36,15 @@ describe("PaymentProcess", function () {
 
     describe("Payment process", function() {
         it("Should pay the loan", async function () {
-            const {user, token, tokenAddress, payementProcess} = await loadFixture(deployPayementProcessFixture);
+            const { user, token, tokenAddress, payementProcess, ADDRESS_ZERO, loanAmount, interestRate, loanDuration, userAccountCredited } = await loadFixture(deployPayementProcessFixture);
 
-            token.mint(user, hre.ethers.parseEther("99"));
+            token.mint(payementProcess.target, userAccountCredited);
 
-            payementProcess.initiateLoan(tokenAddress, hre.ethers.parseEther("10"), 8, 12);
+            payementProcess.initiateLoan(tokenAddress, loanAmount, 8, 12);
 
-            payementProcess.makePayment(1);
+            payementProcess.makePayment(0);
+
+            expect(await token.balanceOf(user)).to.be.greaterThan(0);
         })
     })
 });

@@ -18,7 +18,7 @@ describe("ReputationNFT", function () {
     // Initial values for minting
     const initialScore = 700;
     const loanAmount = hre.ethers.parseEther("10");
-    const interestRate = 800; // 8.00%
+    const interestRate = 8; // 8.00%
     const loanDuration = 12; // 12 months
     const tokenURI = "ipfs://QmExample";
 

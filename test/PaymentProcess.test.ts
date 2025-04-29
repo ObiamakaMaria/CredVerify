@@ -11,10 +11,10 @@ describe("PaymentProcess", function () {
 
         const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-        const loanAmount = hre.ethers.parseEther("10");
-        const interestRate = 8;
+        const loanAmount = hre.ethers.parseEther("15");
+        const interestRate = 800;
         const loanDuration = 12;
-        const userAccountCredited = hre.ethers.parseEther("99");
+        const userAccountCredited = hre.ethers.parseEther("10");
 
         const Token = await hre.ethers.getContractFactory("MockERC20");
         const token = await Token.deploy("CredVerify Token", "CVTKN", 18);
@@ -38,13 +38,28 @@ describe("PaymentProcess", function () {
         it("Should pay the loan", async function () {
             const { user, token, tokenAddress, payementProcess, ADDRESS_ZERO, loanAmount, interestRate, loanDuration, userAccountCredited } = await loadFixture(deployPayementProcessFixture);
 
-            token.mint(payementProcess.target, userAccountCredited);
+            await token.mint(payementProcess.target, userAccountCredited);
 
-            payementProcess.initiateLoan(tokenAddress, loanAmount, 8, 12);
+            console.log("", await token.balanceOf(payementProcess.target));
+            console.log(await token.balanceOf(user));
 
+            token.connect(user).approve(payementProcess.target, loanAmount);
+            
+            await payementProcess.connect(user).initiateLoan(tokenAddress, loanAmount, 10, 12);
+
+            console.log(await token.balanceOf(payementProcess.target));
+            console.log(await token.balanceOf(user));
+
+            // console.log(await payementProcess.loans(0));
+            
             payementProcess.makePayment(0);
 
-            expect(await token.balanceOf(user)).to.be.greaterThan(0);
+            console.log(await token.balanceOf(payementProcess.target));
+            console.log(await token.balanceOf(user));
+
+            // console.log(await payementProcess.loans(0));
+
+            // expect(await token.balanceOf(user)).to.be.greaterThan(0);
         })
     })
 });

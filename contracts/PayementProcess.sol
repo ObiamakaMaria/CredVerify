@@ -42,7 +42,7 @@ contract PaymentProcess {
 
         MockERC20 stablecoin = MockERC20(loan.stablecoin);
 
-        stablecoin.approveAndTransfer(msg.sender, loan.monthlyPaymentAmount, address(this));
+        stablecoin.transfer(msg.sender, loan.monthlyPaymentAmount);
 
         loan.totalPaid += loan.monthlyPaymentAmount;
         loan.paymentCount += 1;
@@ -67,7 +67,7 @@ contract PaymentProcess {
     function initiateLoan(
         address stablecoinAddress,
         uint256 collateralAmount,
-        uint256 interestRate, // 800 = 8% APR
+        uint256 interestRate,
         uint256 durationMonths
     ) external {
         require(collateralAmount > 0, "Collateral must be > 0");
@@ -83,7 +83,7 @@ contract PaymentProcess {
         uint256 startTimestamp = block.timestamp;
 
         // Transfer collateral to contract
-        stablecoin.approveAndTransfer(msg.sender, collateralAmount, address(this));
+        stablecoin.transferFrom(msg.sender, address(this), collateralAmount);
 
         loans[nextLoanId] = Loan({
             borrower: msg.sender,

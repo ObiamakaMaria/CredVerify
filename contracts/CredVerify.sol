@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SD59x18, sd, convert} from "@prb/math/src/SD59x18.sol";
 
 import "./ReputationNFT.sol";
+import './MockERC20.sol';
 
 /**
  * @title CredVerify
  * @dev Main contract for the credit builder loan system
- */j
+ */
 contract CredVerify is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -79,6 +80,23 @@ contract CredVerify is Ownable, ReentrancyGuard {
         address indexed stablecoin,
         uint256 depositAmount
     );
+    event PaymentMade(
+        address indexed borrower, 
+        address indexed payer, 
+        uint256 amount, 
+        uint256 timestamp
+    );
+    event LoanEnded(
+        address indexed borrower, 
+        address indexed payer, 
+        uint256 loanAmount, 
+        uint256 timestamp
+    );
+
+    // Custom errors
+    error UnactiveLoan();
+    error LoanAlreadyCompleted();
+    error Unauthorized();
 
     /**
      * @dev Constructor to initialize the CredVerify contract and deploy reputationNFT
@@ -244,5 +262,36 @@ contract CredVerify is Ownable, ReentrancyGuard {
         int256 payment = convert(paymentFixed);
         require(payment >= 0, "Payment amount cannot be negative");
         return uint256(payment);
+    }
+
+    /**
+     * @dev Allows the borrower to make a payment towards their loan
+     * @param borrower The address of the borrower
+     */
+    function makePayment(address borrower) external {
+
+        Loan memory loan = loans[borrower];
+
+        if(loan.active == false) revert UnactiveLoan();
+        if(loan.completed == true) revert LoanAlreadyCompleted();
+
+        MockERC20 stablecoin = MockERC20(loan.stablecoin);
+
+        stablecoin.approveAndTransfer(address(this), loan.monthlyPaymentAmount, loan.borrower);
+
+        loan.totalPaid += loan.monthlyPaymentAmount;
+        loan.paymentCount += 1;
+        loan.remainingPayments -= 1;
+
+        loan.nextPaymentDue = loan.nextPaymentDue + 30 days;
+
+        if (loan.remainingPayments == 0) {
+            loan.completed = true;
+            loan.active = false;
+
+            emit LoanEnded(borrower, msg.sender, loan.totalPaid, block.timestamp);
+        }
+
+        emit PaymentMade(borrower, msg.sender, loan.monthlyPaymentAmount, block.timestamp);
     }
 }

@@ -269,29 +269,26 @@ contract CredVerify is Ownable, ReentrancyGuard {
      * @param borrower The address of the borrower
      */
     function makePayment(address borrower) external {
+        if(loans[borrower].active == false) revert UnactiveLoan();
+        if(loans[borrower].completed == true) revert LoanAlreadyCompleted();
 
-        Loan memory loan = loans[borrower];
+        MockERC20 stablecoin = MockERC20(loans[borrower].stablecoin);
 
-        if(loan.active == false) revert UnactiveLoan();
-        if(loan.completed == true) revert LoanAlreadyCompleted();
+        stablecoin.approveAndTransfer(address(this), loans[borrower].monthlyPaymentAmount, loans[borrower].borrower);
 
-        MockERC20 stablecoin = MockERC20(loan.stablecoin);
+        loans[borrower].totalPaid += loans[borrower].monthlyPaymentAmount;
+        loans[borrower].paymentCount += 1;
+        loans[borrower].remainingPayments -= 1;
 
-        stablecoin.approveAndTransfer(address(this), loan.monthlyPaymentAmount, loan.borrower);
+        loans[borrower].nextPaymentDue = loans[borrower].nextPaymentDue + 30 days;
 
-        loan.totalPaid += loan.monthlyPaymentAmount;
-        loan.paymentCount += 1;
-        loan.remainingPayments -= 1;
+        if (loans[borrower].remainingPayments == 0) {
+            loans[borrower].completed = true;
+            loans[borrower].active = false;
 
-        loan.nextPaymentDue = loan.nextPaymentDue + 30 days;
-
-        if (loan.remainingPayments == 0) {
-            loan.completed = true;
-            loan.active = false;
-
-            emit LoanEnded(borrower, msg.sender, loan.totalPaid, block.timestamp);
+            emit LoanEnded(borrower, msg.sender, loans[borrower].totalPaid, block.timestamp);
         }
 
-        emit PaymentMade(borrower, msg.sender, loan.monthlyPaymentAmount, block.timestamp);
+        emit PaymentMade(borrower, msg.sender, loans[borrower].monthlyPaymentAmount, block.timestamp);
     }
 }

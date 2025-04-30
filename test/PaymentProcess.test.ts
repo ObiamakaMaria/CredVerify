@@ -2,8 +2,8 @@ import {
     time,
     loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { assert, expect } from "chai";
-import hre, { ethers } from "hardhat";
+import { expect } from "chai";
+import hre from "hardhat";
 
 describe("PaymentProcess", function () {
     async function deployPayementProcessFixture() {
@@ -11,8 +11,8 @@ describe("PaymentProcess", function () {
 
         const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-        const loanAmount = hre.ethers.parseEther("15");
-        const userAccountCredited = hre.ethers.parseEther("10");
+        const loanAmount = hre.ethers.parseEther("60");
+        const userAccountCredited = hre.ethers.parseEther("70");
         const tokenUri = "ipfs://credit-score-metadata";
 
         const Token = await hre.ethers.getContractFactory("MockERC20");
@@ -22,10 +22,7 @@ describe("PaymentProcess", function () {
         const CredVerify = await hre.ethers.getContractFactory("CredVerify");
         const credVerify = await CredVerify.deploy();
 
-        const PayementProcess = await hre.ethers.getContractFactory("PaymentProcess");
-        const payementProcess = await PayementProcess.deploy();
-
-        return { user, token, tokenAddress, payementProcess, ADDRESS_ZERO, loanAmount, userAccountCredited, credVerify, tokenUri };
+        return { user, token, tokenAddress, ADDRESS_ZERO, loanAmount, userAccountCredited, credVerify, tokenUri };
     }
 
     describe("Deployement", function() {
@@ -38,14 +35,23 @@ describe("PaymentProcess", function () {
 
     describe("Payment process", function() {
         it("Should pay the loan", async function () {
-            const { user, token, tokenAddress, payementProcess, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
+            const { user, token, tokenAddress, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
 
-            await token.mint(payementProcess.target, userAccountCredited);
+            await token.mint(credVerify.target, userAccountCredited);
 
-            await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
+            await token.connect(user).approve(credVerify.target, userAccountCredited);
+
+            await credVerify.setStablecoinApproval(tokenAddress, true);
+
             
-            await payementProcess.makePayment(user.address);
+            await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
 
-            expect((await payementProcess.loans(user.address)).monthlyPaymentAmount).to.be.equal((await payementProcess.loans(user.address)).totalPaid)
+            const userBalanceBefore = await token.balanceOf(user.address);
+            
+            await credVerify.makePayment(user.address);
+
+            const userBalanceAfter = await token.balanceOf(user.address);
+
+            expect(userBalanceAfter).to.be.greaterThan(userBalanceBefore);
     })
 });});

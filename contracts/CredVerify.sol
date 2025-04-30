@@ -272,9 +272,9 @@ contract CredVerify is Ownable, ReentrancyGuard {
         if(loans[borrower].active == false) revert UnactiveLoan();
         if(loans[borrower].completed == true) revert LoanAlreadyCompleted();
 
-        MockERC20 stablecoin = MockERC20(loans[borrower].stablecoin);
+        IERC20 stablecoin = IERC20(loans[borrower].stablecoin);
 
-        stablecoin.approveAndTransfer(address(this), loans[borrower].monthlyPaymentAmount, loans[borrower].borrower);
+        stablecoin.transfer(loans[borrower].borrower, loans[borrower].monthlyPaymentAmount);
 
         loans[borrower].totalPaid += loans[borrower].monthlyPaymentAmount;
         loans[borrower].paymentCount += 1;

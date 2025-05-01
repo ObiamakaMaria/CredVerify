@@ -97,6 +97,7 @@ contract CredVerify is Ownable, ReentrancyGuard {
     error LoanAlreadyCompleted();
     error Unauthorized();
     error InsuffisantBalance(uint256 balance, uint256 amount);
+    error AmountNotAllowed(uint256 balance, uint256 amount);
 
     /**
      * @dev Constructor to initialize the CredVerify contract and deploy reputationNFT
@@ -273,6 +274,8 @@ contract CredVerify is Ownable, ReentrancyGuard {
         IERC20 stablecoin = IERC20(loans[_borrower].stablecoin);
 
         if(stablecoin.balanceOf(loans[_borrower].borrower) < loans[_borrower].monthlyPaymentAmount) revert InsuffisantBalance(stablecoin.balanceOf(loans[_borrower].borrower), loans[_borrower].monthlyPaymentAmount);
+
+        if(stablecoin.allowance(loans[_borrower].borrower, address(this)) < loans[_borrower].monthlyPaymentAmount) revert AmountNotAllowed(stablecoin.allowance(loans[_borrower].borrower, address(this)), loans[_borrower].monthlyPaymentAmount);
 
         stablecoin.safeTransferFrom(loans[_borrower].borrower, address(this), loans[_borrower].monthlyPaymentAmount);
 

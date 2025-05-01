@@ -267,7 +267,7 @@ contract CredVerify is Ownable, ReentrancyGuard {
      * @dev Allows the borrower to make a payment towards their loan
      * @param _borrower The address of the borrower
      */
-    function makePayment(address _borrower) external {
+    function makePayment(address _borrower) external nonReentrant{
         if(loans[_borrower].active == false) revert UnactiveLoan();
         if(loans[_borrower].completed == true) revert LoanAlreadyCompleted();
 

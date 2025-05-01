@@ -97,6 +97,7 @@ contract CredVerify is Ownable, ReentrancyGuard {
     error UnactiveLoan();
     error LoanAlreadyCompleted();
     error Unauthorized();
+    error InsuffisantBalance(uint256 balance, uint256 amount);
 
     /**
      * @dev Constructor to initialize the CredVerify contract and deploy reputationNFT
@@ -266,29 +267,35 @@ contract CredVerify is Ownable, ReentrancyGuard {
 
     /**
      * @dev Allows the borrower to make a payment towards their loan
-     * @param borrower The address of the borrower
+     * @param _borrower The address of the borrower
      */
-    function makePayment(address borrower) external {
-        if(loans[borrower].active == false) revert UnactiveLoan();
-        if(loans[borrower].completed == true) revert LoanAlreadyCompleted();
+    function makePayment(address _borrower) external {
+        if(loans[_borrower].active == false) revert UnactiveLoan();
+        if(loans[_borrower].completed == true) revert LoanAlreadyCompleted();
 
-        IERC20 stablecoin = IERC20(loans[borrower].stablecoin);
+        IERC20 stablecoin = IERC20(loans[_borrower].stablecoin);
 
-        stablecoin.transfer(loans[borrower].borrower, loans[borrower].monthlyPaymentAmount);
+        if(stablecoin.balanceOf(loans[_borrower].borrower) < loans[_borrower].monthlyPaymentAmount) revert InsuffisantBalance(stablecoin.balanceOf(loans[_borrower].borrower), loans[_borrower].monthlyPaymentAmount);
 
-        loans[borrower].totalPaid += loans[borrower].monthlyPaymentAmount;
-        loans[borrower].paymentCount += 1;
-        loans[borrower].remainingPayments -= 1;
+        stablecoin.safeTransferFrom(loans[_borrower].borrower, address(this), loans[_borrower].monthlyPaymentAmount);
 
-        loans[borrower].nextPaymentDue = loans[borrower].nextPaymentDue + 30 days;
+        loans[_borrower].totalPaid += loans[_borrower].monthlyPaymentAmount;
+        loans[_borrower].paymentCount += 1;
+        loans[_borrower].remainingPayments -= 1;
 
-        if (loans[borrower].remainingPayments == 0) {
-            loans[borrower].completed = true;
-            loans[borrower].active = false;
+        loans[_borrower].nextPaymentDue = loans[_borrower].nextPaymentDue + 30 days;
 
-            emit LoanEnded(borrower, msg.sender, loans[borrower].totalPaid, block.timestamp);
+        if (loans[_borrower].paymentCount == 12) {
+            loans[_borrower].completed = true;
+            loans[_borrower].active = false;
+
+            if((stablecoin.balanceOf(address(this)) * 1e18) < loans[_borrower].loanAmount) revert InsuffisantBalance((stablecoin.balanceOf(address(this)) * 1e18), loans[_borrower].loanAmount);
+
+            stablecoin.safeTransfer(loans[_borrower].borrower, (loans[_borrower].collateralAmount / 1e18));
+
+            emit LoanEnded(_borrower, address(this), loans[_borrower].totalPaid, block.timestamp);
         }
 
-        emit PaymentMade(borrower, msg.sender, loans[borrower].monthlyPaymentAmount, block.timestamp);
+        emit PaymentMade(_borrower, address(this), loans[_borrower].monthlyPaymentAmount, block.timestamp);
     }
 }

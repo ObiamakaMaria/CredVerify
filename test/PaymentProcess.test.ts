@@ -2,7 +2,7 @@ import {
     time,
     loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { expect } from "chai";
+import { expect, use } from "chai";
 import { formatEther } from "ethers";
 import hre from "hardhat";
 
@@ -38,23 +38,31 @@ describe("PaymentProcess", function () {
         it("Should pay the loan", async function () {
             const { user, token, tokenAddress, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
 
-            await token.mint(credVerify.target, userAccountCredited);
-
             await token.connect(user).approve(credVerify.target, userAccountCredited);
 
             await credVerify.setStablecoinApproval(tokenAddress, true);
 
+            console.log(await token.balanceOf(user.address));
+            console.log(await token.balanceOf(credVerify.target));
+
             await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
+
+            console.log(await token.balanceOf(user.address));
+            console.log(await token.balanceOf(credVerify.target));
 
             const remainingPaymentsBeforeFirstPayement = (await credVerify.loans(user.address)).remainingPayments 
 
             const userBalanceBefore = await token.balanceOf(user.address);
+
             
             await credVerify.makePayment(user.address);
 
+            console.log(await token.balanceOf(user.address));
+            console.log(await token.balanceOf(credVerify.target));
+
             const userBalanceAfter = await token.balanceOf(user.address);
 
-            expect(userBalanceAfter).to.be.greaterThan(userBalanceBefore);
+            expect(userBalanceBefore).to.be.greaterThan(userBalanceAfter);
             expect((await credVerify.loans(user.address)).totalPaid).to.be.not.equal(0);
             expect((await credVerify.loans(user.address)).paymentCount).to.be.equal(1);
             expect((await credVerify.loans(user.address)).remainingPayments).to.be.lessThan(remainingPaymentsBeforeFirstPayement);
@@ -63,18 +71,22 @@ describe("PaymentProcess", function () {
         it("Should end the loan", async function () {
             const { user, token, tokenAddress, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
 
-            await token.mint(credVerify.target, userAccountCredited);
-
             await token.connect(user).approve(credVerify.target, userAccountCredited);
 
             await credVerify.setStablecoinApproval(tokenAddress, true);
 
             await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
+            console.log(await token.balanceOf(user.address));
+            console.log(await token.balanceOf(credVerify.target));
 
             const remainingPaymentsBeforeFirstPayement = (await credVerify.loans(user.address)).remainingPayments
             
             for(let i = 0; i < remainingPaymentsBeforeFirstPayement; i++) {
                 await credVerify.makePayment(user.address);
+                console.log("======================= Month ", i, " =======================");
+                console.log("User balance : ", await token.balanceOf(user.address));
+                console.log("Contract balance : ", await token.balanceOf(credVerify.target));
+                console.log("Loan data : ", await credVerify.loans(user));
             };
 
             expect((await credVerify.loans(user.address)).active).to.be.equal(false);

@@ -232,9 +232,7 @@ contract CredVerify is Ownable, ReentrancyGuard {
         uint256 apr,
         uint256 termInMonths
     ) internal pure returns (uint256) {
-        SD59x18 monthlyRate = sd(int256(apr)).div(
-            sd(12 * 100 * 100)
-        );
+        SD59x18 monthlyRate = sd(int256(apr)).div(sd(12 * 100 * 100));
         SD59x18 principalFixed = sd(int256(principal));
         SD59x18 onePlusR = sd(1e18).add(monthlyRate);
         SD59x18 onePlusRPowN = onePlusR.powu(termInMonths);

@@ -61,6 +61,7 @@ contract CredVerify is Ownable, ReentrancyGuard {
     mapping(address => mapping(uint256 => uint256)) public paymentDates; // borrower => payment index => timestamp
     mapping(address => mapping(uint256 => uint256)) public paymentAmounts; // borrower => payment index => amount
     mapping(address => mapping(uint256 => uint256)) public daysLate; // borrower => payment index => days late
+    mapping(address => uint256[]) public creditScoreHistory;
 
     // Track users with active loans
     address[] public activeCreditScoreBuilders;
@@ -285,6 +286,19 @@ contract CredVerify is Ownable, ReentrancyGuard {
 
         loans[_borrower].nextPaymentDue = loans[_borrower].nextPaymentDue + 30 days;
 
+        // Record payment timestamp
+        paymentDates[_borrower][loans[_borrower].paymentCount] = block.timestamp;
+
+        // Record days late
+        if (block.timestamp > loans[_borrower].nextPaymentDue) {
+            daysLate[_borrower][loans[_borrower].paymentCount] = (block.timestamp - loans[_borrower].nextPaymentDue) / 1 days;
+        } else {
+            daysLate[_borrower][loans[_borrower].paymentCount] = 0;
+        }
+
+        uint256 creditScore = getCreditScore(_borrower);
+        creditScoreHistory[_borrower].push(creditScore);
+
         if (loans[_borrower].paymentCount == 12) {
             loans[_borrower].completed = true;
             loans[_borrower].active = false;
@@ -298,4 +312,54 @@ contract CredVerify is Ownable, ReentrancyGuard {
 
         emit PaymentMade(_borrower, address(this), loans[_borrower].monthlyPaymentAmount, block.timestamp);
     }
+
+    /**
+     * @dev Returns the current credit score of a borrower
+     */
+    function getCreditScore(address _borrower) public view returns (uint256) {
+        if (!loans[_borrower].active && !loans[_borrower].completed) {
+            return INITIAL_CREDIT_SCORE;
+        }
+
+        // Factor 1: Payment History (60%)
+        uint256 onTimePayments = 0;
+        for (uint256 i = 0; i < loans[_borrower].paymentCount; i++) {
+            if (daysLate[_borrower][i] <= 5) {
+                onTimePayments++;
+            }
+        }
+        uint256 paymentHistoryScore = (onTimePayments * 100) / loans[_borrower].paymentCount;
+
+        // Factor 2: Loan Duration (15%)
+        uint256 monthsCompleted = loans[_borrower].paymentCount;
+        uint256 loanDurationScore = (monthsCompleted * 100) / LOAN_DURATION;
+
+        // Factor 3: Payment Consistency (15%)
+        // Assuming payments are regular if made once every 30 days ±5 days
+        uint256 consistentPayments = 0;
+        for (uint256 i = 1; i < loans[_borrower].paymentCount; i++) {
+            uint256 prevDate = paymentDates[_borrower][i - 1];
+            uint256 currentDate = paymentDates[_borrower][i];
+            if (currentDate >= prevDate + 25 days && currentDate <= prevDate + 35 days) {
+                consistentPayments++;
+            }
+        }
+        
+        uint256 paymentConsistencyScore = (consistentPayments * 100) / (loans[_borrower].paymentCount > 1 ? loans[_borrower].paymentCount - 1 : 1);
+
+        // Factor 4: Loan Amount Management (10%)
+        uint256 loanAmountScore = loans[_borrower].totalPaid >= loans[_borrower].loanAmount ? 100 : (loans[_borrower].totalPaid * 100) / loans[_borrower].loanAmount;
+
+        // Weighted Score
+        uint256 weightedScore = (
+            (paymentHistoryScore * PAYMENT_HISTORY_WEIGHT) +
+            (loanDurationScore * LOAN_DURATION_WEIGHT) +
+            (paymentConsistencyScore * PAYMENT_CONSISTENCY_WEIGHT) +
+            (loanAmountScore * LOAN_AMOUNT_WEIGHT)
+        ) / 100;
+
+        uint256 finalScore = MIN_CREDIT_SCORE + ((MAX_CREDIT_SCORE - MIN_CREDIT_SCORE) * weightedScore) / 100;
+
+        return finalScore;
+    }  
 }

@@ -61,6 +61,7 @@ describe("PaymentProcess", function () {
             console.log(await token.balanceOf(credVerify.target));
 
             const userBalanceAfter = await token.balanceOf(user.address);
+            
 
             expect(userBalanceBefore).to.be.greaterThan(userBalanceAfter);
             expect((await credVerify.loans(user.address)).totalPaid).to.be.not.equal(0);

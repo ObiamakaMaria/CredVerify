@@ -94,5 +94,53 @@ describe("PaymentProcess", function () {
             expect((await credVerify.loans(user.address)).remainingPayments).to.be.equal(0);
             expect((await credVerify.loans(user.address)).totalPaid).to.be.equal(parseFloat(hre.ethers.formatEther(loanAmount)));
         });
+
+        it("Should calculate correct credit score after on-time payments", async function () {
+            const { user, token, tokenAddress, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
+        
+            await token.connect(user).approve(credVerify.target, userAccountCredited);
+            await credVerify.setStablecoinApproval(tokenAddress, true);
+            await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
+        
+            const loan = await credVerify.loans(user.address);
+            for (let i = 0; i < loan.remainingPayments; i++) {
+                await credVerify.makePayment(user.address);
+                await time.increase(30 * 24 * 60 * 60); // simulate 30 days
+            }
+
+            const completedLoan = await credVerify.loans(user.address);
+            expect(completedLoan.active).to.be.false;
+            expect(completedLoan.remainingPayments).to.be.equal(0);
+        
+            const creditScore = await credVerify.getCreditScore(user.address);
+            console.log("User credit score: ", creditScore.toString());
+        
+            expect(creditScore).to.be.equal(784);
+        });
+
+        it("Should reduce credit score if borrower makes late payments", async function () {
+            const { user, token, tokenAddress, loanAmount, userAccountCredited, credVerify, tokenUri } = await loadFixture(deployPayementProcessFixture);
+        
+            await token.connect(user).approve(credVerify.target, userAccountCredited);
+            await credVerify.setStablecoinApproval(tokenAddress, true);
+            await credVerify.connect(user).createCreditBuilderLoan(tokenAddress, loanAmount, tokenUri);
+        
+            const loan = await credVerify.loans(user.address);
+            for (let i = 0; i < loan.remainingPayments; i++) {
+                await time.increase(40 * 24 * 60 * 60);
+                await credVerify.makePayment(user.address);
+            }
+        
+            const completedLoan = await credVerify.loans(user.address);
+            expect(completedLoan.active).to.be.false;
+            expect(completedLoan.remainingPayments).to.be.equal(0);
+        
+            const creditScore = await credVerify.getCreditScore(user.address);
+            console.log("User credit score after late payments: ", creditScore.toString());
+        
+            expect(creditScore).to.be.lessThan(784);
+        });
+        
+        
     });
 });

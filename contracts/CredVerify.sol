@@ -315,27 +315,26 @@ contract CredVerify is Ownable, ReentrancyGuard {
 
     /**
      * @dev Returns the current credit score of a borrower
+     * @param _borrower The address of the borrower
+     * @return The credit score of the borrower
      */
     function getCreditScore(address _borrower) public view returns (uint256) {
         if (!loans[_borrower].active && !loans[_borrower].completed) {
             return INITIAL_CREDIT_SCORE;
         }
 
-        // Factor 1: Payment History (60%)
         uint256 onTimePayments = 0;
         for (uint256 i = 0; i < loans[_borrower].paymentCount; i++) {
             if (daysLate[_borrower][i] <= 5) {
                 onTimePayments++;
             }
         }
+
         uint256 paymentHistoryScore = (onTimePayments * 100) / loans[_borrower].paymentCount;
 
-        // Factor 2: Loan Duration (15%)
         uint256 monthsCompleted = loans[_borrower].paymentCount;
         uint256 loanDurationScore = (monthsCompleted * 100) / LOAN_DURATION;
 
-        // Factor 3: Payment Consistency (15%)
-        // Assuming payments are regular if made once every 30 days ±5 days
         uint256 consistentPayments = 0;
         for (uint256 i = 1; i < loans[_borrower].paymentCount; i++) {
             uint256 prevDate = paymentDates[_borrower][i - 1];
@@ -347,10 +346,8 @@ contract CredVerify is Ownable, ReentrancyGuard {
         
         uint256 paymentConsistencyScore = (consistentPayments * 100) / (loans[_borrower].paymentCount > 1 ? loans[_borrower].paymentCount - 1 : 1);
 
-        // Factor 4: Loan Amount Management (10%)
         uint256 loanAmountScore = loans[_borrower].totalPaid >= loans[_borrower].loanAmount ? 100 : (loans[_borrower].totalPaid * 100) / loans[_borrower].loanAmount;
 
-        // Weighted Score
         uint256 weightedScore = (
             (paymentHistoryScore * PAYMENT_HISTORY_WEIGHT) +
             (loanDurationScore * LOAN_DURATION_WEIGHT) +

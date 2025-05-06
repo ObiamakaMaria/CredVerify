@@ -286,18 +286,25 @@ contract CredVerify is Ownable, ReentrancyGuard {
 
         loans[_borrower].nextPaymentDue = loans[_borrower].nextPaymentDue + 30 days;
 
-        // Record payment timestamp
         paymentDates[_borrower][loans[_borrower].paymentCount] = block.timestamp;
 
-        // Record days late
+        bool onTime = true;
+
         if (block.timestamp > loans[_borrower].nextPaymentDue) {
             daysLate[_borrower][loans[_borrower].paymentCount] = (block.timestamp - loans[_borrower].nextPaymentDue) / 1 days;
+            onTime = false;
         } else {
             daysLate[_borrower][loans[_borrower].paymentCount] = 0;
         }
 
         uint256 creditScore = getCreditScore(_borrower);
         creditScoreHistory[_borrower].push(creditScore);
+
+        reputationNFT.updateCreditData(
+            _borrower,
+            creditScore,
+            onTime
+        );
 
         if (loans[_borrower].paymentCount == 12) {
             loans[_borrower].completed = true;
@@ -306,6 +313,8 @@ contract CredVerify is Ownable, ReentrancyGuard {
             if((stablecoin.balanceOf(address(this)) * 1e18) < loans[_borrower].loanAmount) revert InsuffisantBalance((stablecoin.balanceOf(address(this)) * 1e18), loans[_borrower].loanAmount);
 
             stablecoin.safeTransfer(loans[_borrower].borrower, (loans[_borrower].collateralAmount / 1e18));
+
+            reputationNFT.completeLoan(_borrower);
 
             emit LoanEnded(_borrower, address(this), loans[_borrower].totalPaid, block.timestamp);
         }

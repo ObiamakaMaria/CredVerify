@@ -240,3 +240,7 @@ flowchart TD
     L -->|Can Be Used For| N[DeFi Opportunities]
     M -->|Determines| O[Financial Access]
 ```
+
+## Deployment
+Successfully deployed and verified contract CredVerify on the block explorer.
+https://sepolia-blockscout.lisk.com/address/0x497CC525dc3CbDa236B51D8de92875891bE433eF#code
